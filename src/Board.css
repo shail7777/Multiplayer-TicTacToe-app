@@ -1,0 +1,17 @@
+.board {
+    background: "lightblue";
+    margin: auto;
+	width: 500px; /* Total horizontal dimensions */
+	height: 500px; /* Total vertical dimensions */
+	display: grid; /* Enables CSS Grid */ 
+	grid-template-columns: repeat(3, 1fr); /* Total horizontal space broken into 3 columns */
+    grid-template-rows: repeat(3, 1fr); /* Total vertical space broken into 3 rows */
+}
+
+.box {
+    text-align: center;
+    vertical-align: middle;
+    border: 3px solid darkblue;
+    font-size: 3rem;
+    font-weight: bold;
+}
