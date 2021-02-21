@@ -12,9 +12,13 @@ export function Board(props) {
   const [stateO, setStateO] = useState(0);
 
   function onClickButton(i) {
-    console.log("Before onclick function borad: " + board);
-    console.log("Before onclick function sateO: " + stateO);
-    
+    //console.log("Before onclick function borad: " + board);
+    //console.log("Before onclick function sateO: " + stateO);
+    console.log("board.length: " + board.length);
+    console.log("board[i]: " + board[i]);
+    if(board[i] == 'X' || board[i] == 'O'){
+      return;
+    }
     if(stateO == 1){
       board[i] = 'O';
       setStateO((prevStateO) => prevStateO - 1);
@@ -27,15 +31,15 @@ export function Board(props) {
     const newboard = [...board];
     setBoard(newboard);
     socket.emit('clicked', {board: newboard, val: newboard[i]});
-    console.log("After onclick function borad: " + newboard);
-    console.log("After onclick function sateO: " + stateO);
+    //console.log("After onclick function borad: " + newboard);
+    //console.log("After onclick function sateO: " + stateO);
     return newboard;
   };
   
   useEffect(() => {
     socket.on('clicked', (data) => {
-      console.log("Before useEffect borad: " + board);
-      console.log("Before useEffect sateO: " + stateO);
+      //console.log("Before useEffect borad: " + board);
+      //console.log("Before useEffect sateO: " + stateO);
     
       const newboard = [...data.board];
       if(data.val == 'X'){
@@ -46,8 +50,8 @@ export function Board(props) {
       }
       setBoard(newboard);
       
-      console.log("After useEffect borad: " + newboard);
-      console.log("After useEffect sateO: " + stateO);
+      //console.log("After useEffect borad: " + newboard);
+      //console.log("After useEffect sateO: " + stateO);
     });
   }, []);
   
