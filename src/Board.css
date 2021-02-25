@@ -15,3 +15,21 @@
     font-size: 3rem;
     font-weight: bold;
 }
+
+
+.right{
+  position: absolute;
+  text-align: center;
+  border: 2px solid green;
+  right: 60px;
+  width: 100px;
+}
+
+.right1{
+  top: 150px;
+  position: absolute;
+  text-align: center;
+  border: 1px solid black;
+  right: 60px;
+  width: 100px;
+}

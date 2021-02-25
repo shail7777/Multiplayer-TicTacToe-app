@@ -30,6 +30,13 @@ def on_disconnect():
     print('User disconnected!')
 
 
+@socketio.on('assigne')
+def assigne_users(data): 
+    print("in assigne_users")
+    print("Assigned: " + str(data))
+    socketio.emit('assigne', data, broadcast=True, include_self=False)
+
+
 @socketio.on('clicked')
 def on_clicked(data): # data is whatever arg you pass in your emit call on client
     #print(str(data.tile) + " : " + data.value)
