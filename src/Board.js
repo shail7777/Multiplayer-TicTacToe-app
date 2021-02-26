@@ -6,36 +6,23 @@ import { ListItem } from './ListItem.js';
 import io from 'socket.io-client';
 
 const socket = io();
-
+var currentUser;
 export function Board(props) {
   
   const [board, setBoard] = useState([" "]);
+  const [turn, setTurn] = useState("");
   const [stateO, setStateO] = useState(0);
-  const [playerCount, setplayerCount] = useState(1);
   const [player, setPlayer] = useState([]);
   const [spectator, setSpectator] = useState([]);
   const inputRef = useRef(null);
 
   function assigneUser(){
     if(inputRef != null){
-    
       const inp = inputRef.current.value;
-      console.log(inp);
-      console.log("player count: " + playerCount);
+      currentUser = inp;
+      console.log("user input: " + inp);
       
-      if(playerCount < 2){
-        setPlayer(prePlayers => [...prePlayers, inp]);
-        //setPlayer(...player, inp);
-        setplayerCount((prev) => prev + 1);
-      }
-      
-      else{
-        setSpectator(preSpectator => [...preSpectator, inp]);
-      }
-      
-      console.log("spectator: " + spectator);
-      console.log("player: " + player);
-      socket.emit('assigne', {val: inp, count: playerCount});
+      socket.emit('assigne', {val: inp});
     }
   }
 
@@ -60,14 +47,39 @@ export function Board(props) {
   return null;
   }
 
+/*function check(){
+  console.log("current: " + currentUser);
+  var n = player.includes(currentUser);
+
+  if(n == true){
+    return true;
+  }
+  else{
+    return false;
+  }
+}
+
+function turns(){
+  var x;
+  console.log('Curruser: ' + currentUser);
+  socket.emit('turns', {currentUser});
+  socket.on('turns_check', (turn) => {
+      x = turn;
+      console.log("Turn: " + turn);
+    })
+  return x;
+}
+*/
 
   function onClickButton(i) {
-    //console.log("Before onclick function borad: " + board);
-    //console.log("Before onclick function sateO: " + stateO);
-    //console.log("board.length: " + board.length);
-    //console.log("board[i]: " + board[i]);
+    console.log("Current turn: " + turn);
+    
+    if(turn != currentUser || currentUser == null){
+      return;
+    }
+    
     if(board[i] == 'X' || board[i] == 'O'){
-      return null;
+      return;
     }
     
     if(stateO == 1){
@@ -88,35 +100,42 @@ export function Board(props) {
       setBoard([]);
     }*/
     
-    socket.emit('clicked', {board: newboard, val: newboard[i]});
-    //console.log("After onclick function borad: " + newboard);
-    //console.log("After onclick function sateO: " + stateO);
+    if(currentUser == player[0]){
+      socket.emit('turns_update', {user:player[1]});
+    }
+    else{
+      socket.emit('turns_update', {user:player[0]});
+    }
     
+    socket.emit('clicked', {board: newboard, val: newboard[i]});
     return newboard;
   };
   
   useEffect(() => {
     
-    socket.on('assigne', (data) => {
-      const user = data.val;
-      const count = data.count;
-      
-      if(count < 2){
-        setPlayer(prePlayers => [...prePlayers, user]);
-      }
-      
-      else{
-         setSpectator(preSpectator => [...preSpectator, user]);
-      }
-      
-      console.log("useEffect Spectator: " + spectator);
-      console.log("useEffect Players: " + player);
+    socket.on('assigne_players', (server_players) => {
+      const pl = [...server_players];
+      setPlayer(pl);
+    })
+    
+    socket.on('assigne_spectator', (server_spectator) => {
+      const sp = [...server_spectator];
+      setSpectator(sp);
+    })
+    
+    socket.on('first_turns', (data) => {
+      setTurn(data);
+      console.log("First turn: " + data);
+    })
+    
+    socket.on('turns_update', (data) => {
+      var x = data.user;
+      setTurn(x);
+      console.log("Turn updaed to: " + x);
+      console.log("after update turn: " + turn);
     })
     
     socket.on('clicked', (data) => {
-      //console.log("Before useEffect borad: " + board);
-      //console.log("Before useEffect sateO: " + stateO);
-    
       const newboard = [...data.board];
       if(data.val == 'X'){
         setStateO(1);
@@ -125,9 +144,7 @@ export function Board(props) {
         setStateO(0);
       }
       setBoard(newboard);
-      
-      //console.log("After useEffect borad: " + newboard);
-      //console.log("After useEffect sateO: " + stateO);
+    
     });
     
   }, []);
@@ -150,7 +167,7 @@ export function Board(props) {
           {spectator.map(users => <ListItem name={users} />)}
         </ol>
       </div>
-      
+      <p>Turn: {turn}</p>
       <Squares onClickButton={onClickButton} val={board} />
     </div>
     
