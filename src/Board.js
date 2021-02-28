@@ -29,7 +29,6 @@ export function Board(props) {
         setShowBoard(true);
         const inp = inputRef.current.value;
         currentUser = inp;
-        console.log("user input: " + inp);
         socket.emit('assigne', {val: inp});
       }
       else{
@@ -73,7 +72,6 @@ export function Board(props) {
   }
 
   function onClickButton(i) {
-    //console.log("Current turn: " + turn);
     if(turn != currentUser || currentUser == null){
       return;
     }
@@ -111,7 +109,6 @@ export function Board(props) {
     
     var num = count + 1;
     setCount(num);
-    console.log(num);
     if(num == 9){
       console.log("its a draw")
       setDraw(true);
@@ -143,7 +140,6 @@ export function Board(props) {
       var x = data.user;
       setTurn(x);
       console.log("Turn updaed to: " + x);
-      console.log("after update turn: " + turn);
     })
     
     socket.on('winner', (data) =>{
