@@ -17,6 +17,10 @@ socketio = SocketIO(
 
 session_player = []
 session_spectator = []
+reset_game = {
+    "p1" : False,
+    "p2" : False
+}
 
 @app.route('/', defaults={"filename": "index.html"})
 @app.route('/<path:filename>')
@@ -61,6 +65,33 @@ def on_clicked(data): # data is whatever arg you pass in your emit call on clien
     #print(str(data.tile) + " : " + data.value)
     print("Server is sending index: " + str(data))
     socketio.emit('clicked', data, broadcast=True, include_self=False)
+
+@socketio.on('winner')
+def winner_user(data):
+    print(str(data) + " is the winner")
+    socketio.emit('winner', data, broadcast=True, include_self=True)
+
+@socketio.on('draw')
+def draw(data):
+    socketio.emit('draw', data, broadcast=True, include_self=False)
+
+@socketio.on('reset')
+def reset(data):
+    user = str(data['user'])
+    if user == session_player[0]:
+        reset_game["p1"] = True
+        print("p1 is true")
+    if user == session_player[1]:
+        reset_game["p2"] = True
+        print("p2 is true")
+    if reset_game["p1"] == True and reset_game["p2"] == True:
+        print("in the elif reset")
+        reset_game["p1"] = False
+        reset_game["p2"] = False
+        socketio.emit('reset', data, broadcast=True, include_self=True)
+        print("Reseting the game now")
+    print("reset function")
+    
 
 # Note that we don't call app.run anymore. We call socketio.run with app arg
 socketio.run(

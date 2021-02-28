@@ -15,17 +15,42 @@ export function Board(props) {
   const [player, setPlayer] = useState([]);
   const [spectator, setSpectator] = useState([]);
   const inputRef = useRef(null);
+  const [showBoard, setShowBoard] = useState(false);
+  const [showWinner, setShowWinner] = useState(false);
+  const [winner, setWinner] = useState("");
+  const [loser, setLoser] = useState("");
+  const [showdraw, setDraw] = useState(false);
+  const [count, setCount] = useState(0);
 
   function assigneUser(){
-    if(inputRef != null){
-      const inp = inputRef.current.value;
-      currentUser = inp;
-      console.log("user input: " + inp);
-      
-      socket.emit('assigne', {val: inp});
+    const inp = inputRef.current.value;
+    if(inp.length != 0 || currentUser == 0){
+      if(!player.includes(inp) && !spectator.includes(inp)){
+        setShowBoard(true);
+        const inp = inputRef.current.value;
+        currentUser = inp;
+        console.log("user input: " + inp);
+        socket.emit('assigne', {val: inp});
+      }
+      else{
+        setShowBoard(false);
+        console.log("already in list")
+        return;
+      }
+    }
+    else{
+      setShowBoard(false);
+      return
     }
   }
-
+  
+  function reset(){
+    if(player.includes(currentUser)){
+      socket.emit('reset', {user:currentUser});
+      console.log('Reseting ' + currentUser);
+    }
+    return;
+  }
 
   function calculateWinner(squares) {
     const lines = [
@@ -47,46 +72,18 @@ export function Board(props) {
   return null;
   }
 
-/*function check(){
-  console.log("current: " + currentUser);
-  var n = player.includes(currentUser);
-
-  if(n == true){
-    return true;
-  }
-  else{
-    return false;
-  }
-}
-
-function turns(){
-  var x;
-  console.log('Curruser: ' + currentUser);
-  socket.emit('turns', {currentUser});
-  socket.on('turns_check', (turn) => {
-      x = turn;
-      console.log("Turn: " + turn);
-    })
-  return x;
-}
-*/
-
   function onClickButton(i) {
-    console.log("Current turn: " + turn);
-    
+    //console.log("Current turn: " + turn);
     if(turn != currentUser || currentUser == null){
       return;
     }
-    
     if(board[i] == 'X' || board[i] == 'O'){
       return;
     }
-    
     if(stateO == 1){
       board[i] = 'O';
       setStateO((prevStateO) => prevStateO - 1);
     }
-    
     if(stateO == 0){
       board[i] = 'X';
       setStateO((prevStateO) => prevStateO + 1);
@@ -94,20 +91,34 @@ function turns(){
     
     const newboard = [...board];
     setBoard(newboard);
+    if(calculateWinner(board)){
+      socket.emit('clicked', {board: newboard, val: newboard[i], count:num});
+      if(currentUser == player[0]){
+        socket.emit('winner', {winner:player[0], loser:player[1]});
+      }
+      if(currentUser == player[1]){
+        socket.emit('winner', {winner:player[1], loser:player[0]});
+      }
+      return;
+    }
     
-    /*if(calculateWinner(board)){
-      alert("You Won!!!");
-      setBoard([]);
-    }*/
-    
-    if(currentUser == player[0]){
+    if(currentUser == player[0] && player[1] != null){
       socket.emit('turns_update', {user:player[1]});
     }
     else{
       socket.emit('turns_update', {user:player[0]});
     }
     
-    socket.emit('clicked', {board: newboard, val: newboard[i]});
+    var num = count + 1;
+    setCount(num);
+    console.log(num);
+    if(num == 9){
+      console.log("its a draw")
+      setDraw(true);
+      socket.emit('draw', {draw:showdraw});
+    }
+    
+    socket.emit('clicked', {board: newboard, val: newboard[i], count:num});
     return newboard;
   };
   
@@ -135,8 +146,31 @@ function turns(){
       console.log("after update turn: " + turn);
     })
     
+    socket.on('winner', (data) =>{
+      var win = data.winner;
+      var los = data.loser;
+      setWinner(win);
+      setLoser(los);
+      setShowWinner(true);
+    })
+    
+    socket.on('draw', (data) => {
+      setDraw(true);
+    })
+    
+    socket.on('reset', (data) => {
+      console.log("Reseting the game now")
+      setBoard([""]);
+      setDraw(false);
+      setShowWinner(false);
+      setCount(0);
+    })
+    
     socket.on('clicked', (data) => {
       const newboard = [...data.board];
+      const no = data.count;
+      setCount(no);
+      console.log("count set to: " + no);
       if(data.val == 'X'){
         setStateO(1);
       }
@@ -144,7 +178,6 @@ function turns(){
         setStateO(0);
       }
       setBoard(newboard);
-    
     });
     
   }, []);
@@ -154,21 +187,43 @@ function turns(){
       Enter your username: <input ref={inputRef} type='text' />
       <button onClick={assigneUser}>Submit</button>
       
-      <div class="right">
-      Players:
-        <ol>
-          {player.map(users => <ListItem name={users} />)}
-        </ol>
-      </div>
+      {showBoard === true ?(
+      <div>
       
-      <div class="right1">
-      Spectator:
-        <ol>
+        <div class="right">
+        Players:
+          <ol>
+          {player.map(users => <ListItem name={users} />)}
+          </ol>
+        </div>
+      
+        <div class="right1">
+        Spectator:
+          <ol>
           {spectator.map(users => <ListItem name={users} />)}
-        </ol>
+          </ol>
+        </div>
+        
+        <p>Turn: {turn}</p>
+        
+        {showdraw === true ?(
+        <div>
+        <p>This game is a draw.</p>
+        <button onClick={reset}>Reset</button>
+        </div>
+        ) : null}
+        
+        {showWinner === true ?(
+        <div>
+        <p>Winner of the game is {winner}.</p>
+        <p>Losser of the game is {loser}.</p>
+        <button onClick={reset}>Reset</button>
+        </div>
+        ) : null}
+        
+        <Squares onClickButton={onClickButton} val={board} />
       </div>
-      <p>Turn: {turn}</p>
-      <Squares onClickButton={onClickButton} val={board} />
+      ) : null}
     </div>
     
   );
