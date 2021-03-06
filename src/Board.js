@@ -24,6 +24,7 @@ export function Board(props) {
   const [count, setCount] = useState(0);
   const [db_user, setDB_user] = useState([]);
   const [db_rank, setDB_rank] = useState([]);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   function assigneUser(){
     const inp = inputRef.current.value;
@@ -45,6 +46,16 @@ export function Board(props) {
       setShowBoard(false);
       return;
     }
+  }
+  
+  function Leaderboard(){
+    if(showLeaderboard === true){
+      setShowLeaderboard(false);
+    }
+    else{
+      setShowLeaderboard(true);
+    }
+    return;
   }
   
   function reset(){
@@ -153,7 +164,7 @@ export function Board(props) {
     });
     
     socket.on('winner', (data) =>{
-      console.log("winner is desided")
+      console.log("winner is desided");
       var win = data.winner;
       var los = data.loser;
       setWinner(win);
@@ -194,8 +205,18 @@ export function Board(props) {
     });
     
     socket.on('connect', (data) => {
-      setPlayer(data.server_players);
-      setSpectator(data.server_spectator);
+      try{
+        const pl = [...data.player];
+        const sp = [...data.spectator];
+        setPlayer(pl);
+        setSpectator(sp);
+        console.log("on connect")
+        console.log(pl);
+        console.log(sp);
+      }
+      catch(err){
+        console.log(err.message);
+      }
     });
     
   }, []);
@@ -239,20 +260,17 @@ export function Board(props) {
         </div>
         ) : null}
         
-        {db_user != null ?(
-        <div class="right2">
+        <button onClick={Leaderboard}> Show/Hide Leaderboard</button>
+        {showLeaderboard === true ?(
+        <div class="leaderboard">
         Leader Board:
         <table>
         <tr>
           <th>Users</th>
           <th>Ranks</th>
         </tr>
-        
-        
         {db_user.map((users, index) => <Table name={users} rank={db_rank[index]} />)}
-        
         </table>
-        
         </div>
         ) : null}
         
@@ -263,6 +281,3 @@ export function Board(props) {
     
   );
 }
-
-//{db_user.map(users => <Table name={users} />)}
-//{db_rank.map(rank => <Table name={rank} />)}

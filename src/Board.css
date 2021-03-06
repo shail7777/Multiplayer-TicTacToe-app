@@ -34,11 +34,11 @@
   width: 100px;
 }
 
-.right2{
-  top: 300px;
+.leaderboard{
+  top: 125px;
   position: absolute;
   text-align: center;
   border: 3px solid blue;
-  right: 30px;
+  left: 30px;
   width: 150px;
 }

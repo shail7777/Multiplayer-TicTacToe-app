@@ -55,7 +55,10 @@ def on_connect():
     #user_db = user_db.reverse()
     #rank_db = rank_db.reverse()
     socketio.emit('user_list', {'user' : user_db, 'rank' : rank_db})
-    socketio.emit('connect', {'player' : session_player, 'spectator' : session_spectator})
+    
+    if session_player:
+        print("emiting connet")
+        socketio.emit('connect', {'player' : session_player, 'spectator' : session_spectator})
 
 # When a client disconnects from this Socket connection, this function is run
 @socketio.on('disconnect')
