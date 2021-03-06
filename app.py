@@ -45,15 +45,12 @@ def index(filename):
 def on_connect():
     print('User connected!')
     all_data = db.session.query(models.Leaderboard).order_by(models.Leaderboard.rank.desc()).all()
-    #print(all_data)
-    #all_data = models.Leaderboard.query.all()
     
     for people in all_data:
         if people.username not in user_db:
             user_db.append(people.username)
             rank_db.append(people.rank)
-    #user_db = user_db.reverse()
-    #rank_db = rank_db.reverse()
+            
     socketio.emit('user_list', {'user' : user_db, 'rank' : rank_db})
     
     if session_player:
@@ -85,15 +82,7 @@ def assigne_users(data):
             if people.username not in user_db:
                 user_db.append(people.username)
                 rank_db.append(people.rank)
-        #user_db = user_db.reverse()
-        #rank_db = rank_db.reverse()
         socketio.emit('user_list', {'user' : user_db, 'rank' : rank_db})   
-    
-    """else:
-        #user already in the database so get that record
-        user_query = models.leaderboard.query.filter(username=user).all()
-        user_db.append(user_query)
-        socketio.emit('user_list', {'user_db' : user_db}, broadcast=False, include_self=True)"""
     
     if len(session_player) < 2:
         session_player.append(user)
