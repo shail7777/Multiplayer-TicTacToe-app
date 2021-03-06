@@ -257,19 +257,22 @@ export function Board(props) {
         <p>Winner of the game is {winner}.</p>
         <p>Losser of the game is {loser}.</p>
         <button onClick={reset}>Reset</button>
+        <p>
+        
+        
+        </p>
         </div>
         ) : null}
-        
-        <button onClick={Leaderboard}> Show/Hide Leaderboard</button>
+  
+        <button onClick={Leaderboard} class="button button5"> Show/Hide Leaderboard</button>
         {showLeaderboard === true ?(
-        <div class="leaderboard">
-        Leader Board:
-        <table>
+        <div>
+        <table class="leaderboard">
         <tr>
-          <th>Users</th>
-          <th>Ranks</th>
+        <th>Leader Board</th>
         </tr>
-        {db_user.map((users, index) => <Table name={users} rank={db_rank[index]} />)}
+        {db_user.map((users, index) => <Table name={users} rank={db_rank[index]} curr={currentUser} />)}
+        
         </table>
         </div>
         ) : null}
