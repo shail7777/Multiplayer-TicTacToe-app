@@ -3,6 +3,7 @@ import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { Squares } from './square.js';
 import { ListItem } from './ListItem.js';
+import { Table } from './table.js';
 import io from 'socket.io-client';
 
 const socket = io();
@@ -21,6 +22,8 @@ export function Board(props) {
   const [loser, setLoser] = useState("");
   const [showdraw, setDraw] = useState(false);
   const [count, setCount] = useState(0);
+  const [db_user, setDB_user] = useState([]);
+  const [db_rank, setDB_rank] = useState([]);
 
   function assigneUser(){
     const inp = inputRef.current.value;
@@ -34,13 +37,13 @@ export function Board(props) {
       }
       else{
         setShowBoard(false);
-        console.log("already in list")
+        console.log("already in list");
         return;
       }
     }
     else{
       setShowBoard(false);
-      return
+      return;
     }
   }
   
@@ -73,7 +76,9 @@ export function Board(props) {
   }
 
   function onClickButton(i) {
-    //console.log("Current turn: " + turn);
+    if(calculateWinner(board)){
+      return;
+    }
     if(turn != currentUser || currentUser == null){
       return;
     }
@@ -91,6 +96,7 @@ export function Board(props) {
     
     const newboard = [...board];
     setBoard(newboard);
+    
     if(calculateWinner(board)){
       socket.emit('clicked', {board: newboard, val: newboard[i], count:num});
       if(currentUser == player[0]){
@@ -113,58 +119,59 @@ export function Board(props) {
     setCount(num);
     console.log(num);
     if(num == 9){
-      console.log("its a draw")
+      console.log("its a draw");
       setDraw(true);
       socket.emit('draw', {draw:showdraw});
     }
     
     socket.emit('clicked', {board: newboard, val: newboard[i], count:num});
     return newboard;
-  };
+  }
   
   useEffect(() => {
     
     socket.on('assigne_players', (server_players) => {
       const pl = [...server_players];
       setPlayer(pl);
-    })
+    });
     
     socket.on('assigne_spectator', (server_spectator) => {
       const sp = [...server_spectator];
       setSpectator(sp);
-    })
+    });
     
     socket.on('first_turns', (data) => {
       setTurn(data);
       console.log("First turn: " + data);
-    })
+    });
     
     socket.on('turns_update', (data) => {
       var x = data.user;
       setTurn(x);
       console.log("Turn updaed to: " + x);
       console.log("after update turn: " + turn);
-    })
+    });
     
     socket.on('winner', (data) =>{
+      console.log("winner is desided")
       var win = data.winner;
       var los = data.loser;
       setWinner(win);
       setLoser(los);
       setShowWinner(true);
-    })
+    });
     
     socket.on('draw', (data) => {
       setDraw(true);
-    })
+    });
     
     socket.on('reset', (data) => {
-      console.log("Reseting the game now")
+      console.log("Reseting the game now");
       setBoard([""]);
       setDraw(false);
       setShowWinner(false);
       setCount(0);
-    })
+    });
     
     socket.on('clicked', (data) => {
       const newboard = [...data.board];
@@ -178,6 +185,17 @@ export function Board(props) {
         setStateO(0);
       }
       setBoard(newboard);
+    });
+    
+    socket.on('user_list', (data) => {
+      setDB_user(data.user);
+      setDB_rank(data.rank);
+      console.log(data);
+    });
+    
+    socket.on('connect', (data) => {
+      setPlayer(data.server_players);
+      setSpectator(data.server_spectator);
     });
     
   }, []);
@@ -221,6 +239,23 @@ export function Board(props) {
         </div>
         ) : null}
         
+        {db_user != null ?(
+        <div class="right2">
+        Leader Board:
+        <table>
+        <tr>
+          <th>Users</th>
+          <th>Ranks</th>
+        </tr>
+        
+        
+        {db_user.map((users, index) => <Table name={users} rank={db_rank[index]} />)}
+        
+        </table>
+        
+        </div>
+        ) : null}
+        
         <Squares onClickButton={onClickButton} val={board} />
       </div>
       ) : null}
@@ -228,3 +263,6 @@ export function Board(props) {
     
   );
 }
+
+//{db_user.map(users => <Table name={users} />)}
+//{db_rank.map(rank => <Table name={rank} />)}

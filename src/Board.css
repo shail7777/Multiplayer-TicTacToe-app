@@ -33,3 +33,12 @@
   right: 60px;
   width: 100px;
 }
+
+.right2{
+  top: 300px;
+  position: absolute;
+  text-align: center;
+  border: 3px solid blue;
+  right: 30px;
+  width: 150px;
+}
